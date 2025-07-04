@@ -1,37 +1,40 @@
-document.getElementById('emailForm').addEventListener('submit', async function(e) {
-  e.preventDefault();
-  const data = {
-    first: document.getElementById('first').value,
-    last: document.getElementById('last').value,
-    domain: document.getElementById('domain').value
-  };
+document.addEventListener('DOMContentLoaded', function () {
+  const form = document.getElementById('emailForm');
+  const output = document.getElementById('output');
 
-  const res = await fetch('/check', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const first_name = document.getElementById('first').value.trim();
+    const last_name = document.getElementById('last').value.trim();
+    const domain = document.getElementById('domain').value.trim();
+
+    if (!first_name || !last_name || !domain) {
+      output.textContent = '❌ Please fill in all fields.';
+      return;
+    }
+
+    output.textContent = '🔄 Checking emails, please wait...';
+
+    try {
+      const response = await fetch('/check', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ first_name, last_name, domain })
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        output.textContent = '❌ ' + data.error;
+      } else {
+        output.textContent = JSON.stringify(data, null, 2);
+      }
+    } catch (err) {
+      output.textContent = '❌ An error occurred while checking emails.';
+      console.error(err);
+    }
   });
-
-  const result = await res.json();
-  document.getElementById('output').textContent = JSON.stringify(result, null, 2);
-});
-
-document.getElementById('bulkForm').addEventListener('submit', async function(e) {
-  e.preventDefault();
-  const formData = new FormData();
-  formData.append('csv', document.getElementById('csvFile').files[0]);
-
-  const res = await fetch('/bulk', {
-    method: 'POST',
-    body: formData
-  });
-
-  const blob = await res.blob();
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = "email_verification_results.csv";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
 });
