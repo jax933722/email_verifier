@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify, send_file
-from email_checker import check_email_permutations
+from email_checker import generate_emails
 import csv, os, uuid
 from werkzeug.utils import secure_filename
 
@@ -16,7 +16,7 @@ def check():
     first = data.get('first')
     last = data.get('last')
     domain = data.get('domain')
-    result = check_email_permutations(first, last, domain)
+    results = generate_emails(first_name, last_name, domain)
     return jsonify(result)
 
 @app.route('/bulk', methods=['POST'])
