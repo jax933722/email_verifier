@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Email Verifier</title>
+  <style>
+    body { font-family: Arial; margin: 40px; background-color: #f7f7f7; }
+    form { margin-bottom: 20px; }
+    input, button { padding: 10px; margin: 5px; }
+    pre { background-color: #fff; padding: 15px; border: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+  <h2>Email Verifier Tool</h2>
+
+  <form id="emailForm">
+    <input type="text" id="first" placeholder="First Name" required />
+    <input type="text" id="last" placeholder="Last Name" required />
+    <input type="text" id="domain" placeholder="Domain (e.g. company.com)" required />
+    <button type="submit">Check Single</button>
+  </form>
+
+  <form id="bulkForm" enctype="multipart/form-data">
+    <input type="file" id="csvFile" accept=".csv" required />
+    <button type="submit">Check Bulk</button>
+  </form>
+
+  <pre id="output"></pre>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>
