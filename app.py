@@ -12,12 +12,12 @@ def index():
 
 @app.route('/check', methods=['POST'])
 def check():
-    data = request.get_json()
-    first = data.get('first')
-    last = data.get('last')
-    domain = data.get('domain')
+    first_name = request.form.get('first_name', '').strip()
+    last_name = request.form.get('last_name', '').strip()
+    domain = request.form.get('domain', '').strip()
+
     results = generate_emails(first_name, last_name, domain)
-    return jsonify(result)
+    return jsonify(results)
 
 @app.route('/bulk', methods=['POST'])
 def bulk():
