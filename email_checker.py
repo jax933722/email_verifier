@@ -1,43 +1,70 @@
+
 import smtplib
 import dns.resolver
+import socket
 
-def generate_patterns(first, last, domain):
-    return [
-        f"{first}.{last}@{domain}",
-        f"{first[0]}.{last}@{domain}",
-        f"{first}{last}@{domain}",
-        f"{first}@{domain}",
-        f"{first[0]}{last}@{domain}",
-        f"{first}_{last}@{domain}"
-    ]
+def check_email_smtp(email):
+    domain = email.split('@')[1]
 
-def check_mx(domain):
+    # Get MX record
     try:
-        dns.resolver.resolve(domain, 'MX')
-        return True
-    except:
-        return False
+        records = dns.resolver.resolve(domain, 'MX')
+        mx_record = str(records[0].exchange).rstrip('.')
+    except Exception as e:
+        return False  # No MX record found
 
-def validate_email(email):
+    # Try SMTP handshake
     try:
-        domain = email.split('@')[1]
         server = smtplib.SMTP(timeout=10)
-        server.connect(f"smtp.{domain}")
-        server.helo("test.com")
-        server.mail("test@test.com")
-        code, _ = server.rcpt(email)
+        server.connect(mx_record)
+        server.helo("example.com")  # Use your domain here
+        server.mail('test@example.com')
+        code, message = server.rcpt(email)
         server.quit()
-        return code == 250
-    except:
+
+        return code in [250, 251]
+    except (smtplib.SMTPServerDisconnected, smtplib.SMTPConnectError, socket.timeout, socket.gaierror):
         return False
 
-def check_email_permutations(first, last, domain):
-    first, last, domain = first.lower(), last.lower(), domain.lower()
-    if not check_mx(domain):
-        return {"error": "Domain has no MX records."}
+def generate_emails(first_name, last_name, domain):
+    first = first_name.lower()
+    last = last_name.lower()
+    f = first[0]
+    l = last[0]
+
+    patterns = set([
+        f"{first}@{domain}",
+        f"{last}@{domain}",
+        f"{first}.{last}@{domain}",
+        f"{f}.{last}@{domain}",
+        f"{first}.{l}@{domain}",
+        f"{f}{last}@{domain}",
+        f"{first}{last}@{domain}",
+        f"{first}_{last}@{domain}",
+        f"{f}_{last}@{domain}",
+        f"{first}-{last}@{domain}",
+        f"{first}{l}@{domain}",
+        f"{last}{f}@{domain}",
+        f"{last}.{f}@{domain}",
+        f"{last}_{f}@{domain}",
+        f"{last}-{f}@{domain}",
+        f"{l}.{first}@{domain}",
+        f"{f}@{domain}",
+        f"{f}{l}@{domain}",
+        f"{f}.{l}@{domain}",
+        f"{f}_{l}@{domain}",
+        f"{f}-{l}@{domain}",
+        f"{first}{l}@{domain}",
+        f"{f}{last}@{domain}",
+        f"{first}{last[0]}@{domain}",
+        f"{first[0]}{last[0]}@{domain}",
+        f"{first[0]}{last}@{domain}",
+        f"{last[0]}{first}@{domain}",
+        f"{last[0]}{first[0]}@{domain}",
+    ])
 
     results = {}
-    for email in generate_patterns(first, last, domain):
-        valid = validate_email(email)
-        results[email] = "Valid" if valid else "Invalid"
+    for email in sorted(patterns):
+        is_valid = check_email_smtp(email)
+        results[email] = "Valid" if is_valid else "Invalid"
     return results
